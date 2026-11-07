@@ -526,9 +526,10 @@ with tab_image:
             )
         else:
             # Validate the image
-            is_valid, validation_msg = validate_image(original_img)
-            if not is_valid:
-                st.warning(f"⚠️ Image validation: {validation_msg}")
+            try:
+                validate_image(original_img)
+            except ValueError as ve:
+                st.warning(f"⚠️ Image validation: {ve}")
 
             # Run detection
             with st.status("Running detection …", expanded=True) as status:

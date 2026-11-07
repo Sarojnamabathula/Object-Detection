@@ -726,22 +726,29 @@ class ROICounter:
 # ===========================================================================
 
 
-def validate_image(file_bytes: bytes) -> np.ndarray:
-    """Decode and validate an image from raw bytes.
+def validate_image(image_or_bytes: bytes | np.ndarray) -> np.ndarray:
+    """Decode and validate an image from raw bytes or validate an existing NumPy image array.
 
     Args:
-        file_bytes: Raw image file content (JPEG, PNG, BMP, etc.).
+        image_or_bytes: Raw image file content (JPEG, PNG, etc.) or decoded BGR np.ndarray.
 
     Returns:
         Decoded BGR ``np.ndarray`` with shape ``(H, W, 3)``.
 
     Raises:
-        ValueError: If the bytes cannot be decoded into a valid image.
+        ValueError: If the input cannot be decoded or has an invalid shape.
     """
-    if not file_bytes:
+    if isinstance(image_or_bytes, np.ndarray):
+        if image_or_bytes.size == 0:
+            raise ValueError("Empty image array.")
+        if image_or_bytes.ndim != 3 or image_or_bytes.shape[2] != 3:
+            raise ValueError(f"Unexpected image shape {image_or_bytes.shape}; expected (H, W, 3).")
+        return image_or_bytes
+
+    if not image_or_bytes:
         raise ValueError("Empty file: no bytes received.")
 
-    arr = np.frombuffer(file_bytes, dtype=np.uint8)
+    arr = np.frombuffer(image_or_bytes, dtype=np.uint8)
     image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
 
     if image is None:
